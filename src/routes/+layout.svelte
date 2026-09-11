@@ -69,9 +69,28 @@
 <svelte:head
   ><meta
     name="description"
-    content="Search songs, artists, and remembered lyrics. Find synced lyrics with BiniLyrics."
+    content="Search songs, artists, and lyrics. Find synced lyrics with BiniLyrics."
   />
+  <link rel="canonical" href="https://lyrics.binimum.org">
+  <meta name="robots" content="index, follow" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta name="color-scheme" content="light dark" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://lyrics.binimum.org" />
+  <meta property="og:title" content="Your Catchy Page Title Here" />
+  <meta property="og:description" content="Search songs, artists, and lyrics. Find synced lyrics with BiniLyrics." />
+  <meta property="og:image" content="https://lyrics.binimum.org/og.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="BiniLyrics" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://lyrics.binimum.org" />
+  <meta name="twitter:title" content="BiniLyrics" />
+  <meta name="twitter:description" content="Search songs, artists, and lyrics. Find synced lyrics with BiniLyrics." />
+  <meta name="twitter:image" content="https://lyrics.binimum.org/og.jpg" />
+  <meta name="twitter:creator" content="@binnymum" />
   </svelte:head
 >
 <LiquidBackground />
