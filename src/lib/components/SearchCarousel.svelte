@@ -195,7 +195,6 @@
         {#if i === 1}
           <video
             class="carousel-demo-video"
-            src="/am-lyrics-demo.webm"
             autoplay
             muted
             loop
@@ -204,7 +203,14 @@
               event.currentTarget.playbackRate = 0.9;
             }}
             aria-hidden="true"
-          ></video>
+          >
+            <source
+              src="/am-lyrics-demo-safari.mov"
+              type='video/quicktime; codecs="hvc1"'
+            />
+            <source
+              src="/am-lyrics-demo.webm" type="video/webm" />
+          </video>
         {/if}
         {#if i === 2}<TtmlPreview />{/if}
         {#if i === 1 || i === 2}
