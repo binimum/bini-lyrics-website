@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { normalizeSong, normalizeSuggestions } from "../src/lib/apple.ts";
-import { createAppleClient } from "../src/lib/server/apple.ts";
+import { createAppleClient } from "../src/lib/apple-client.ts";
 import { searchParams } from "../src/lib/search.ts";
 const song = {
   id: "123",
@@ -65,7 +65,7 @@ test("coalesces token requests, respects TTL and only calls the official music h
   let now = 1000;
   let mints = 0;
   let searches = 0;
-  const fetcher = (async (input: RequestInfo | URL) => {
+  const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input));
     if (url.hostname === "am-mint.binimum.org") {
       mints++;
@@ -77,6 +77,11 @@ test("coalesces token requests, respects TTL and only calls the official music h
       });
     }
     assert.equal(url.hostname, "api.music.apple.com");
+    assert.equal(new Headers(init?.headers).has("Origin"), false);
+    assert.equal(
+      new Headers(init?.headers).get("Authorization"),
+      "Bearer test-token",
+    );
     searches++;
     return Response.json({ results: {} });
   }) as typeof fetch;
@@ -116,6 +121,70 @@ test("refreshes rejected tokens once and does not loop on authorization failure"
   assert.equal(mints, 2);
   assert.equal(requests, 2);
 });
+test("cancelling one search does not cancel a shared token request", async () => {
+  let releaseToken!: (response: Response) => void;
+  let mints = 0;
+  let searches = 0;
+  const client = createAppleClient((async (input: RequestInfo | URL) => {
+    if (String(input).includes("am-mint")) {
+      mints++;
+      return new Promise<Response>((resolve) => {
+        releaseToken = resolve;
+      });
+    }
+    searches++;
+    return Response.json({ results: {} });
+  }) as typeof fetch);
+  const controller = new AbortController();
+  const cancelled = client("search", new URLSearchParams(), controller.signal);
+  const rejection = assert.rejects(cancelled, { name: "AbortError" });
+  const active = client("search/suggestions", new URLSearchParams());
+  controller.abort();
+  releaseToken(
+    Response.json({
+      token: "test",
+      token_type: "Bearer",
+      cache_ttl_seconds: 120,
+    }),
+  );
+  await Promise.all([rejection, active]);
+  assert.equal(mints, 1);
+  assert.equal(searches, 1);
+});
+
+test("cancels an in-flight catalog request", async () => {
+  let started!: () => void;
+  const ready = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+  const client = createAppleClient((async (
+    input: RequestInfo | URL,
+    init?: RequestInit,
+  ) => {
+    if (String(input).includes("am-mint")) {
+      return Response.json({
+        token: "test",
+        token_type: "Bearer",
+        cache_ttl_seconds: 120,
+      });
+    }
+    return new Promise<Response>((_, reject) => {
+      init!.signal!.addEventListener(
+        "abort",
+        () => reject(init!.signal!.reason),
+        { once: true },
+      );
+      started();
+    });
+  }) as typeof fetch);
+  const controller = new AbortController();
+  const request = client("search", new URLSearchParams(), controller.signal);
+  const rejection = assert.rejects(request, { name: "AbortError" });
+  await ready;
+  controller.abort();
+  await rejection;
+});
+
 test("ISRC and precise lookup validates and preserves parameters", () => {
   assert.equal(
     searchParams(new URLSearchParams({ isrc: "gb-aye-11-01143" })).get("isrc"),

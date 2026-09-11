@@ -2,6 +2,7 @@
   import { afterUpdate, onMount, onDestroy } from "svelte";
   import Icon from "./Icon.svelte";
   import type { Suggestion } from "$lib/apple";
+  import { suggestApple } from "$lib/apple-client";
   import type { Track } from "$lib/types";
   export let busy = false;
   export let compact = false;
@@ -113,14 +114,9 @@
       const current = new AbortController();
       controller = current;
       try {
-        const response = await fetch(
-          `/api/suggestions?${new URLSearchParams({ q: term })}`,
-          { signal: current.signal },
-        );
-        if (!response.ok) throw new Error();
-        const data = await response.json();
+        const data = await suggestApple(term, current.signal);
         if (query.trim() !== term || current.signal.aborted) return;
-        suggestions = data.suggestions;
+        suggestions = data;
         expanded = !!suggestions.length;
       } catch {
         if (!current.signal.aborted)

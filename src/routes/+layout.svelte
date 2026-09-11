@@ -70,7 +70,9 @@
   ><meta
     name="description"
     content="Search songs, artists, and remembered lyrics. Find synced lyrics with BiniLyrics."
-  /></svelte:head
+  />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  </svelte:head
 >
 <LiquidBackground />
 <a class="skip" href="#main">Skip to content</a>

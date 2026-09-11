@@ -4692,10 +4692,8 @@ footer .brand {
   transform: none;
 }
 .carousel-history {
-  display: flex;
-  align-items: center;
-  gap: 32px;
-  margin-top: 18px;
+  display: block;
+  margin-top: 14px;
 }
 .carousel-history > div {
   flex: 1;
@@ -4717,10 +4715,19 @@ footer .brand {
   margin-top: 6px;
 }
 .carousel-history .chart {
+  margin: 16px -20px -20px;
+  border-radius: 0 0 18px 18px;
+  overflow: hidden;
   color: #6c8add;
 }
 .carousel-history svg {
-  max-height: 78px;
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: none;
+}
+.carousel-history stop {
+  stop-color: #6c8add;
 }
 .carousel-api {
   display: flex;
@@ -4761,29 +4768,53 @@ footer .brand {
 .carousel-indicators {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 0;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 .carousel-indicators button {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 20px;
+  height: 24px;
+  padding: 0;
   background: transparent;
+  transition: width 220ms cubic-bezier(0.2, 0, 0, 1);
 }
-.carousel-indicators span {
+.carousel-indicators button:active {
+  scale: 1;
+}
+.carousel-indicators button.active {
+  width: 48px;
+}
+.carousel-indicators .indicator-track {
+  position: relative;
+  display: block;
   width: 6px;
   height: 6px;
   border-radius: 99px;
-  background: currentColor;
-  opacity: 0.3;
+  overflow: hidden;
+  isolation: isolate;
+  transform: translateZ(0);
+  background: color-mix(in srgb, currentColor 25%, transparent);
   transition:
-    width 220ms,
-    opacity 220ms;
+    width 220ms cubic-bezier(0.2, 0, 0, 1),
+    height 220ms,
+    background-color 220ms;
 }
-.carousel-indicators button.active span {
-  width: 22px;
-  opacity: 0.85;
+.carousel-indicators .indicator-track i {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.carousel-indicators button.active .indicator-track {
+  width: 32px;
+  height: 6px;
 }
 .reader,
 [data-theme="dark"] .reader {
@@ -4813,7 +4844,7 @@ footer .brand {
     font-size: 27px;
   }
   .carousel-history > .chart {
-    flex: 0.75;
+    margin: 14px -18px -18px;
   }
   .carousel-api {
     flex-wrap: wrap;
@@ -4946,7 +4977,7 @@ footer .brand {
   margin-top: 12px;
 }
 .carousel-history svg {
-  height: 58px;
+  height: auto;
   width: 100%;
 }
 .carousel-api {
@@ -4960,6 +4991,90 @@ footer .brand {
 .carousel-api code {
   width: 100%;
   margin-left: 44px;
+}
+.carousel-card.carousel-demo {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transform: translateZ(0);
+  background: color-mix(in srgb, #141d33 10%, transparent);
+  background-clip: padding-box;
+  border: 1px solid transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+[data-theme="dark"] .carousel-card.carousel-demo {
+  background: transparent;
+}
+.carousel-card.carousel-demo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: 1px solid var(--glass-edge);
+  border-radius: 17px;
+  pointer-events: none;
+}
+.carousel-demo-video {
+  position: absolute;
+  left: 0;
+  top: calc(50% - 40px);
+  width: 100%;
+  height: auto;
+  /* The active line is near y=140 in the 844px recording, not its centre. */
+  transform: translateY(-16.6%);
+  pointer-events: none;
+}
+.carousel-demo-blur {
+  position: absolute;
+  inset-inline: 0;
+  height: 96px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  pointer-events: none;
+  --blur-fade: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 15%,
+    #000000ed 30%,
+    #000000b8 48%,
+    #00000066 66%,
+    #0000001a 84%,
+    transparent 100%
+  );
+  mask-image: var(--blur-fade);
+  -webkit-mask-image: var(--blur-fade);
+}
+.carousel-demo-blur-top {
+  top: 0;
+}
+.carousel-demo-blur-bottom {
+  bottom: 0;
+  transform: rotate(180deg);
+}
+.carousel-card.carousel-ttml {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.carousel-demo .carousel-card-top,
+.carousel-ttml .carousel-card-top {
+  position: relative;
+}
+.carousel-ttml .carousel-demo-blur-top {
+  height: 100px;
+}
+.carousel-ttml .carousel-demo-blur-bottom {
+  height: 106px;
+}
+.carousel-demo-description {
+  position: absolute;
+  bottom: 20px;
+  inset-inline: 20px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--glass-text);
 }
 @media (min-width: 1100px) {
   .carousel-card {

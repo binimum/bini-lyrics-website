@@ -1,6 +1,33 @@
 <script lang="ts">
+  import { onDestroy } from "svelte";
+  import { pushState } from "$app/navigation";
+  import CopyButton from "$lib/components/CopyButton.svelte";
   let copied = "";
   let copyError = "";
+  let copyTimer: ReturnType<typeof setTimeout>;
+  onDestroy(() => clearTimeout(copyTimer));
+  function scrollToSection(event: MouseEvent) {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    )
+      return;
+    const hash = (event.currentTarget as HTMLAnchorElement).hash;
+    const section = document.getElementById(hash.slice(1));
+    if (!section) return;
+    event.preventDefault();
+    pushState(hash, {});
+    section.focus({ preventScroll: true });
+    section.scrollIntoView({
+      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+      block: "start",
+    });
+  }
   const examples = [
     {
       id: "search",
@@ -32,6 +59,8 @@
       await navigator.clipboard.writeText(text);
       copied = id;
       copyError = "";
+      clearTimeout(copyTimer);
+      copyTimer = setTimeout(() => (copied = ""), 1800);
     } catch {
       copyError = "Copy unavailable. Select the code to copy it manually.";
     }
@@ -59,7 +88,7 @@
 </script>
 
 <svelte:head
-  ><title>For developers — BiniLyrics</title><meta
+  ><title>BiniLyrics: for developers</title><meta
     name="description"
     content="Build with the BiniLyrics API. Find synced lyrics by ISRC, track and artist, or free-text search, and retrieve TTML lyric files."
   /></svelte:head
@@ -68,22 +97,25 @@
   <h1>API reference</h1>
   <div class="developer-grid">
     <nav class="docs-nav" aria-label="API documentation">
-      <a href="#search">Search</a><a href="#isrc">ISRC lookup</a><a
-        href="#track">Track matching</a
-      ><a href="#response">Response</a><a href="#history">History</a>
+      {#each [["search", "Search"], ["isrc", "ISRC lookup"], ["track", "Track matching"], ["response", "Response"], ["history", "History"]] as [id, label]}
+        <a href={`#${id}`} onclick={scrollToSection}>{label}</a>
+      {/each}
     </nav>
     <div class="docs-content">
-      {#each examples as example}<section id={example.id}>
+      {#each examples as example}<section id={example.id} tabindex="-1">
           <h2>{example.title}</h2>
           <p>{example.text}</p>
           <div class="code-block">
             <div class="code-top">
-              <span>GET / JSON</span><button
-                onclick={() => copy(example.id, example.url)}
-                >{copied === example.id ? "Copied ✓" : "Copy URL"}</button
-              >
+              <span>GET / JSON</span>
             </div>
-            <pre>{example.url}</pre>
+            <div class="code-body">
+              <pre>{example.url}</pre>
+              <CopyButton
+                copied={copied === example.id}
+                onclick={() => copy(example.id, example.url)}
+              />
+            </div>
           </div>
           {#if example.id === "track"}<table class="docs-table">
               <thead
@@ -107,7 +139,7 @@
               >
             </table>{/if}
         </section>{/each}
-      <section id="response">
+      <section id="response" tabindex="-1">
         <h2>Response</h2>
         <p>
           Search and lookup endpoints share the same response shape. Each result
@@ -116,10 +148,12 @@
         </p>
         <div class="code-block">
           <div class="code-top">
-            <span>EXAMPLE RESPONSE</span><button
+            <span>EXAMPLE RESPONSE</span>
+            <CopyButton
+              label="Copy JSON"
+              copied={copied === "response"}
               onclick={() => copy("response", responseExample)}
-              >{copied === "response" ? "Copied ✓" : "Copy JSON"}</button
-            >
+            />
           </div>
           <pre>{responseExample}</pre>
         </div>
@@ -130,6 +164,21 @@
         </p>
       </section>
       {#if copyError}<p role="status">{copyError}</p>{/if}
+      <span class="visually-hidden" role="status"
+        >{copied ? "Copied to clipboard" : ""}</span
+      >
     </div>
   </div>
 </main>
+
+<style>
+  .code-body {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .code-body pre {
+    flex: 1;
+    min-width: 0;
+  }
+</style>

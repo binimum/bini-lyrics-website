@@ -16,6 +16,7 @@
     type SearchResult,
   } from "$lib/types";
   import { searchParams } from "$lib/search";
+  import { searchApple } from "$lib/apple-client";
   let history = snapshot;
   let historyStatus = "Saved snapshot";
   let busy = false;
@@ -126,15 +127,20 @@
         20,
       );
     try {
-      const response = await fetch(
-        `/api/${params.has("q") ? "search" : "lookup"}?${params}`,
-        { signal: current.signal },
-      );
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(
-          data.message ?? "Search is unavailable. Please try again.",
-        );
+      let data: SearchResult;
+      if (params.has("q")) {
+        data = await searchApple(params.get("q")!, 0, current.signal);
+      } else {
+        const response = await fetch(`/api/lookup?${params}`, {
+          signal: current.signal,
+        });
+        const lookup = await response.json();
+        if (!response.ok)
+          throw new Error(
+            lookup.message ?? "Search is unavailable. Please try again.",
+          );
+        data = lookup;
+      }
       if (controller === current) result = data;
     } catch (cause) {
       if (controller === current && (cause as Error).name !== "AbortError")
@@ -148,19 +154,14 @@
     const original = result;
     const current = new AbortController();
     moreController = current;
-    const params = new URLSearchParams({
-      q: $page.url.searchParams.get("q") ?? "",
-      offset: String(result.nextOffset),
-    });
     loadingMore = true;
     moreError = "";
     try {
-      const response = await fetch(`/api/search?${params}`, {
-        signal: current.signal,
-      });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.message ?? "Could not load more songs.");
+      const data = await searchApple(
+        $page.url.searchParams.get("q") ?? "",
+        original.nextOffset,
+        current.signal,
+      );
       if (result !== original) return;
       const ids = new Set(result.results.map((track) => track.id));
       result = {
@@ -179,9 +180,7 @@
   }
 </script>
 
-<svelte:head
-  ><title>BiniLyrics — Find the song behind the words.</title></svelte:head
->
+<svelte:head><title>BiniLyrics</title></svelte:head>
 <main
   id="main"
   class="minimal-home"
