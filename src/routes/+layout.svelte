@@ -78,7 +78,7 @@
 
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://lyrics.binimum.org" />
-  <meta property="og:title" content="Your Catchy Page Title Here" />
+  <meta property="og:title" content="BiniLyrics" />
   <meta property="og:description" content="Search songs, artists, and lyrics. Find synced lyrics with BiniLyrics." />
   <meta property="og:image" content="https://lyrics.binimum.org/og.jpg" />
   <meta property="og:image:width" content="1200" />
